@@ -2,6 +2,7 @@ package cn.andone.controller;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletResponse;
@@ -11,6 +12,7 @@ import org.apache.http.HttpResponse;
 import org.omg.CORBA.PUBLIC_MEMBER;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import cn.andone.pojo.Comment;
@@ -29,5 +31,10 @@ public class CommentController {
 		return "forward:/postdetail?id="+pid;
 	}
 	
-	
+	@RequestMapping("/backlistcomment")
+	public String listComment(Model model){
+		List<Comment> comments = commentService.queryComment();
+		model.addAttribute("comList", comments);
+		return "backListComment";
+	}
 }

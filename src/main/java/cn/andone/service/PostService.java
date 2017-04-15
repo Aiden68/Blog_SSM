@@ -13,6 +13,8 @@ public interface PostService {
 	
 	Posts queryPostandCommentById(String id);
 	
+	void addPost(Posts posts);
+	
 	Posts updatePost(Posts post);
 	
 	void deletePostById(String id);

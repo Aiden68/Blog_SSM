@@ -28,8 +28,10 @@ public class LoginController {
 		HttpSession session = request.getSession();
 		if(admin != null && admin.getUsername() != null){
 			session.setAttribute("username", admin.getUsername());
+			System.out.println(admin.getUsername());
+			return "backIndex";
 		}
-		return "backIndex";
+		return "backLogin";
 	}
 	
 	@RequestMapping("logout")

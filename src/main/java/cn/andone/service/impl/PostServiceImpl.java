@@ -35,13 +35,13 @@ public class PostServiceImpl implements PostService{
 
 	@Override
 	public Posts queryById(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		return postDao.selectByPrimaryKey(Integer.parseInt(id));
 	}
 
 	@Override
 	public Posts updatePost(Posts post) {
-		// TODO Auto-generated method stub
+		postDao.updateByPrimaryKey(post);
+		System.out.println(post.getVisitor());
 		return null;
 	}
 
@@ -76,9 +76,6 @@ public class PostServiceImpl implements PostService{
 		Criteria criteria = example.createCriteria();
 		criteria.andCatnameEqualTo(catName);
 		List<Posts> list = postDao.selectByExample(example);
-		/*PageInfo<Posts> pageInfo = new PageInfo<>(list);
-		System.out.println(pageInfo.getTotal());
-		System.out.println(list.size());*/
 		Pager pager = new Pager<>(pageSize, currentPage,
 				list.size(), list.size() / pageSize, list);
 		return pager;
@@ -87,6 +84,11 @@ public class PostServiceImpl implements PostService{
 	@Override
 	public Posts queryPostandCommentById(String id) {
 		return postDao.selectAndCommentByPrimaryKey(Integer.parseInt(id));
+	}
+
+	@Override
+	public void addPost(Posts posts) {
+		postDao.insert(posts);
 	}
 
 }

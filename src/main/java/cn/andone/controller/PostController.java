@@ -2,6 +2,7 @@ package cn.andone.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import ch.qos.logback.core.net.LoginAuthenticator;
+import cn.andone.asyncqueue.EventModel;
+import cn.andone.asyncqueue.EventProducer;
+import cn.andone.asyncqueue.EventType;
 import cn.andone.pojo.Catagory;
 import cn.andone.pojo.Comment;
 import cn.andone.pojo.Posts;
@@ -33,6 +36,9 @@ public class PostController {
 	
 	@Autowired
 	private CatagoryService catagoryService = new CatagoryServiceImpl();
+	
+	@Autowired
+	private EventProducer eventProducer;
 	
 	@SuppressWarnings("unchecked")
 	@RequestMapping("list")
@@ -88,6 +94,15 @@ public class PostController {
 		List<Catagory> catList = catagoryService.queryAll();
 		model.addAttribute("catList", catList);
 		model.addAttribute("commentSize", post.getCommentList().size());
+		eventProducer.fireEvent(new EventModel(EventType.VIEW)
+	        .setActorId(0).setEntityId(Integer.parseInt(id))
+	        .setEntityType(0).setEntityOwnerId(0)
+	        .setExt("", ""));
+	/*	EventModel eventModel = new EventModel();
+		eventModel.setEntityId(Integer.parseInt(id));
+		eventModel.setType(EventType.VIEW);
+		EventProducer eventProducer = new EventProducer();
+		eventProducer.fireEvent(eventModel);*/
 		return "forward:/WEB-INF/jsp/frontDetail.jsp";
 	}
 	
@@ -114,5 +129,16 @@ public class PostController {
 		model.addAttribute("result", result);
 		model.addAttribute("pageList", pageList);
 		return "listPost";
+	}
+	
+	@RequestMapping("backaddpost")
+	public String addPost(Posts post){
+		postService.addPost(post);
+		return "redirect:backlistpost";
+	}
+	
+	@RequestMapping("backaddpostview")
+	public String postView(){
+		return "backAddPost";
 	}
 }

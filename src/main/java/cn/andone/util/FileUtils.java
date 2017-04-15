@@ -17,7 +17,7 @@ public class FileUtils {
 	private static final String ACCESS_KEY = "Z2falupC7NPzcGrII4L77G_GY9TrXM9o-baRHN2D";//这里填上面我们讲到的，密钥管理里面的密钥
     private static final String SECRET_KEY = "nd-NLlPQ0QO2Y5D1oWXLLrBtY-I3tM3Gmy_PCJG4";
     										  
-    private static final String BUCKET_NAME = "blog";//填我们在七牛云创建的 Bucket 名字
+    private static final String BUCKET_NAME = "blog";
 
     /**
      * 上传图片到七牛云存储

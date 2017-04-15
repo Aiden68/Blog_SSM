@@ -90,8 +90,8 @@
                     <ul class="dropdown-menu" role="menu">
                         <li class="dropdown-header">业务功能</li>
                         <li class="active"><a href="#">博客列表</a></li>
-                        <li><a href="/jsp/addPost.jsp">创建博客</a></li>
-                        <li><a href="<%=path%>/image?type=4">图片管理</a></li>
+                        <li><a href="/jsp/backaddPost.jsp">创建博客</a></li>
+                        <li><a href="<%=path%>/backImageManage">图片管理</a></li>
                         <li class="divider"></li>
                         <li class="dropdown-header">系统功能</li>
                         <li><a href="#">设置</a></li>
@@ -119,7 +119,7 @@
             </ul>
             <ul class="nav nav-sidebar">
                 <li><a href="${pageContext.request.contextPath }/backlistpost?pageSizeStr=10">博客列表</a></li>
-                <li><a href="${pageContext.request.contextPath }/backaddpost">创建博客</a></li>
+                <li><a href="<%=path%>/backaddpostview">创建博客</a></li>
                 <li><a href="${pageContext.request.contextPath }/backlistcomment">评论列表</a></li>
                 <li><a href="<%=path%>/image?type=4">图片管理</a></li>
             </ul>
