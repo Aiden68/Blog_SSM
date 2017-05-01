@@ -1,144 +1,107 @@
 package cn.andone.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
+import cn.andone.dao.PostDao;
+import cn.andone.model.Post;
+import cn.andone.model.Statics;
+import cn.andone.service.CommentService;
+import cn.andone.service.PostService;
+import cn.andone.util.DataTablesResult;
+import cn.andone.util.PageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import cn.andone.asyncqueue.EventModel;
-import cn.andone.asyncqueue.EventProducer;
-import cn.andone.asyncqueue.EventType;
-import cn.andone.pojo.Catagory;
-import cn.andone.pojo.Comment;
-import cn.andone.pojo.Posts;
-import cn.andone.service.CatagoryService;
-import cn.andone.service.PostService;
-import cn.andone.service.impl.CatagoryServiceImpl;
-import cn.andone.service.impl.PostServiceImpl;
-import cn.andone.util.Constant;
-import cn.andone.util.Pager;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-
-
+/**
+ * Created by JLL on 2017/4/18.
+ */
 @Controller
-@RequestMapping("/")
 public class PostController {
 
-	@Autowired
-	private PostService postService = new PostServiceImpl();
-	
-	@Autowired
-	private CatagoryService catagoryService = new CatagoryServiceImpl();
-	
-	@Autowired
-	private EventProducer eventProducer;
-	
-	@SuppressWarnings("unchecked")
-	@RequestMapping("list")
-	public String postList(HttpServletRequest request,
-			String pageNum, String pageSizeStr, String catName, Model model) throws UnsupportedEncodingException{
-		int pageSize = Constant.DEFAULT_PAGE_SIZE;
-		if(pageSizeStr!=null && !"".equals(pageSizeStr.trim())){
-			pageSize = Integer.parseInt(pageSizeStr);
-		}
-		int currentPage = Constant.DEFAULT_PAGE_NUM; //显示第几页数据
-		if(pageNum!=null && !"".equals(pageNum.trim())){
-			currentPage = Integer.parseInt(pageNum);
-		}
-		Pager<Posts> result = null;
-		System.out.println(catName);
-		if(catName != null && !catName.equals("")){
-			catName = new String(catName.getBytes("ISO-8859-1"), "utf-8");
-			result = postService.queryByPageAndCatName(currentPage, pageSize, catName);	
-		}
-		else{
-			result = postService.queryByPage(currentPage, pageSize);
-		}	
-		for(Posts post:result.getResultList()){
-			if(post.getContent()==null){
-				continue;
-			}
-			String content = post.getContent();
-			String regex = "<[^>]*>";
-			String temp = content.replaceAll(regex, "");
-			temp += "......";
-			if(temp.length() > 200){
-				post.setSummary(temp.substring(0, 200) + "......");
-			}
-			else{
-				post.setSummary(temp);
-			}
-		}
-		List<Catagory> catList = catagoryService.queryAll();
-		model.addAttribute("result", result);
-		model.addAttribute("catList", catList);
-		return "frontList";
-	}
-	
-	@RequestMapping("")
-	public String index(){
-		return "index";
-	}
-	
-	@RequestMapping("postdetail")
-	public String detail(String id, Model model){
-		Posts post = postService.queryPostandCommentById(id);
-		model.addAttribute("post",post);
-		List<Catagory> catList = catagoryService.queryAll();
-		model.addAttribute("catList", catList);
-		model.addAttribute("commentSize", post.getCommentList().size());
-		eventProducer.fireEvent(new EventModel(EventType.VIEW)
-	        .setActorId(0).setEntityId(Integer.parseInt(id))
-	        .setEntityType(0).setEntityOwnerId(0)
-	        .setExt("", ""));
-	/*	EventModel eventModel = new EventModel();
-		eventModel.setEntityId(Integer.parseInt(id));
-		eventModel.setType(EventType.VIEW);
-		EventProducer eventProducer = new EventProducer();
-		eventProducer.fireEvent(eventModel);*/
-		return "forward:/WEB-INF/jsp/frontDetail.jsp";
-	}
-	
-	
-	@RequestMapping("backlistpost")
-	public String backList(HttpServletRequest request,
-			String pageNum, String pageSizeStr,Model model) throws UnsupportedEncodingException{
-		System.out.println(pageNum);
-		int pageSize = Constant.DEFAULT_PAGE_SIZE;
-		if(pageSizeStr!=null && !"".equals(pageSizeStr.trim())){
-			pageSize = Integer.parseInt(pageSizeStr);
-		}
-		int currentPage = Constant.DEFAULT_PAGE_NUM; //显示第几页数据
-		if(pageNum!=null && !"".equals(pageNum.trim())){
-			currentPage = Integer.parseInt(pageNum);
-		}
-		@SuppressWarnings("unchecked")
-		Pager<Posts> result = postService.queryByPage(currentPage, pageSize);
-		
-		List<Integer> pageList = new ArrayList<>();
-		for(int i = 0; i < result.getTotalPage(); i++){
-			pageList.add(i);
-		}
-		model.addAttribute("result", result);
-		model.addAttribute("pageList", pageList);
-		return "listPost";
-	}
-	
-	@RequestMapping("backaddpost")
-	public String addPost(Posts post){
-		postService.addPost(post);
-		return "redirect:backlistpost";
-	}
-	
-	@RequestMapping("backaddpostview")
-	public String postView(){
-		return "backAddPost";
-	}
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private CommentService commentService;
+
+    @RequestMapping("")
+    public String index(){
+        return "front/index";
+    }
+
+    @RequestMapping("/list")
+    public String list(Integer currentPage, Integer pageSize, Model model){
+        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize);
+        List<Statics> statics = postService.getPostByMonth();
+        model.addAttribute("page", page);
+        model.addAttribute("statics",statics);
+        return "front/list";
+    }
+
+    @RequestMapping("/detail")
+    public String detail(Integer id, Model model){
+        postService.updateVisitorById(id);
+        Post post = postService.getPostById(id);
+        post.setCommentList(commentService.getCommentList(id));
+        model.addAttribute("post", post);
+        return "front/detail";
+    }
+
+    @RequestMapping("backIndex")
+    public String backIndex(){
+
+        return "back/index";
+    }
+
+    @RequestMapping("backIndexV1")
+    public String backIndexV1(){
+        return "forward:/WEB-INF/template/back/index_v1.jsp";
+    }
+
+    @RequestMapping("backUeditor")
+    public String ueditor(){
+        return "forward:/WEB-INF/template/back/ueditor.jsp";
+    }
+
+    @RequestMapping("backAddPost")
+    public String addPost(Post post){
+        Date date = new Date();
+        post.setCreateTime(date);
+        post.setUpdateTime(date);
+        postService.addPost(post);
+        return "forward:/WEB-INF/template/back/index_v1.jsp";
+    }
+
+    @RequestMapping("backListPost")
+    public String backListPost(Integer currentPage, Integer pageSize,Model model){
+        if(pageSize == null || pageSize == 0){
+            pageSize = 10;
+        }
+        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize);
+        List<Integer> pageList = new ArrayList<>();
+        System.out.println(page.getTotalPage());
+        for(int i = 0; i < page.getTotalPage(); i++){
+            pageList.add(i);
+        }
+        model.addAttribute("pageList", pageList);
+        model.addAttribute("page", page);
+        return "forward:/WEB-INF/template/back/listPost.jsp";
+    }
+
+
+    @RequestMapping("backDeletePost")
+    public String deletePost(Integer id, Integer currentPage, Integer pageSize,Model model){
+        postService.deletePostById(id);
+        if(pageSize == null || pageSize == 0){
+            pageSize = 10;
+        }
+        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize);
+
+        return "forward:backListPost";
+    }
 }
