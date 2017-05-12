@@ -45,14 +45,23 @@ public class PostService {
         postDao.deletePost(id);
     }
 
-    public PageUtil<Post> getPostByPage(Integer currentPage, Integer pageSize){
+    public PageUtil<Post> getPostByPage(Integer currentPage, Integer pageSize, String catName, String key){
         if(currentPage == null || currentPage == 0){
             currentPage = 1;
         }
         if(pageSize == null || pageSize == 0){
             pageSize = 6;
         }
-        List<Post> postList = postDao.getPostByPage((currentPage - 1) * pageSize, pageSize);
+        List<Post> postList;
+        if(catName != null){
+            postList = postDao.getPostByPageAndCategory((currentPage - 1) * pageSize, pageSize, catName);
+        }
+        else if(key != null){
+            postList = postDao.getPostByPageAndKey((currentPage - 1) * pageSize, pageSize, "%" + key+"%");
+        }
+        else {
+            postList = postDao.getPostByPage((currentPage - 1) * pageSize, pageSize);
+        }
         for(Post post: postList){
             if(post.getContent()==null){
                 continue;

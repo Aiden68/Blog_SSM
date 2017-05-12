@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,13 +36,32 @@ public class PostController {
     }
 
     @RequestMapping("/list")
-    public String list(Integer currentPage, Integer pageSize, Model model){
-        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize);
+    public String list(Integer currentPage, Integer pageSize, String catName, String key, Model model) throws UnsupportedEncodingException {
+        PageUtil<Post> page;
+        if(catName != null){
+            catName = new String(catName.getBytes("ISO-8859-1"), "utf-8");
+            page = postService.getPostByPage(currentPage, pageSize, catName, null);
+        }
+        else if(key != null){
+            key = new String(key.getBytes("ISO-8859-1"), "utf-8");
+            page = postService.getPostByPage(currentPage, pageSize, null, key);
+        }
+        else {
+            page = postService.getPostByPage(currentPage, pageSize, null, null);
+        }
         List<Statics> statics = postService.getPostByMonth();
         model.addAttribute("page", page);
         model.addAttribute("statics",statics);
         return "front/list";
     }
+
+//    @RequestMapping("/listByCon")
+//    public String postListByCondition(String catName, String key, Model model){
+//        if(catName != null){
+//
+//        }
+//        return "front/list";
+//    }
 
     @RequestMapping("/detail")
     public String detail(Integer id, Model model){
@@ -82,7 +102,7 @@ public class PostController {
         if(pageSize == null || pageSize == 0){
             pageSize = 10;
         }
-        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize);
+        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize, null, null);
         List<Integer> pageList = new ArrayList<>();
         System.out.println(page.getTotalPage());
         for(int i = 0; i < page.getTotalPage(); i++){
@@ -100,7 +120,7 @@ public class PostController {
         if(pageSize == null || pageSize == 0){
             pageSize = 10;
         }
-        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize);
+        PageUtil<Post> page = postService.getPostByPage(currentPage, pageSize, null, null);
 
         return "forward:backListPost";
     }
